@@ -5,9 +5,14 @@
 package it.polito.tdp.exam;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.exam.model.Adiacenza;
 import it.polito.tdp.exam.model.Model;
+import it.polito.tdp.exam.model.Team;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,10 +40,10 @@ public class FXMLController {
     private Button btnSimula; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbAnno"
-    private ComboBox<?> cmbAnno; // Value injected by FXMLLoader
+    private ComboBox<Integer> cmbAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbSquadra"
-    private ComboBox<?> cmbSquadra; // Value injected by FXMLLoader
+    private ComboBox<String> cmbSquadra; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -48,12 +53,35 @@ public class FXMLController {
 
     @FXML
     void handleCreaGrafo(ActionEvent event) {
+    	txtResult.clear();
+    	String t = cmbSquadra.getValue();
+    	if(t==null) {
+    		txtResult.appendText("Selezionare una squadra! \n");
+    		return;
+    	}
+    	
+    	this.model.creaGrafo(t);
+    	txtResult.appendText("#Vertici: " + this.model.getNVertici()+ "\n");
+    	txtResult.appendText("#Arhci: " + this.model.getNArchi() + "\n \n" );
+    	
+    	cmbAnno.getItems().addAll(this.model.getVertici());
 
     }
 
     @FXML
     void handleDettagli(ActionEvent event) {
-
+      Integer anno = cmbAnno.getValue();
+      if(anno == null) {
+    	  txtResult.appendText("Selezionare un anno! \n \n");
+    	  return;
+      }
+      List<Adiacenza> adiacenze = new ArrayList<>();
+      adiacenze = this.model.getElencoAdiacenti(anno);
+      Collections.sort(adiacenze);
+      for(Adiacenza a : adiacenze) {
+    	  txtResult.appendText(a.toString());
+      }
+      
     }
 
     @FXML
@@ -75,6 +103,7 @@ public class FXMLController {
 
     public void setModel(Model model) {
         this.model = model;
+        cmbSquadra.getItems().addAll(this.model.getAllName());
     }
 
 }

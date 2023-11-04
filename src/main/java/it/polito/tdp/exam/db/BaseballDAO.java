@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import it.polito.tdp.exam.model.People;
 import it.polito.tdp.exam.model.Team;
@@ -40,9 +42,10 @@ public class BaseballDAO {
 		}
 	}
 
-	public List<Team> readAllTeams() {
-		String sql = "SELECT * " + "FROM  teams";
-		List<Team> result = new ArrayList<Team>();
+	public Set<Team> readAllTeams() {
+		String sql = "SELECT * " + 
+	                 "FROM  teams ";
+		Set<Team> result = new HashSet<Team>();
 
 		try {
 			Connection conn = DBConnect.getConnection();
@@ -58,6 +61,123 @@ public class BaseballDAO {
 						rs.getInt("homerunsAllowed"), rs.getString("name"), rs.getString("park")));
 			}
 
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+	
+	
+	public List<String> getTeamsNames(){
+		String sql = "SELECT DISTINCT name "
+				+ "FROM teams "
+				+ "ORDER BY name ASC";
+		List<String> result = new ArrayList<String>();
+
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				result.add(new String(rs.getString("name")));
+			}
+
+			
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+	
+	public List<Integer> getVertici(String name){
+		String sql = "SELECT distinct year "
+				+ "FROM teams "
+				+ "WHERE name = ? "
+				+ "ORDER BY year ASC";
+		List<Integer> result = new ArrayList<Integer>();
+
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, name);
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				result.add(rs.getInt("year"));
+			}
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+	
+	
+	
+	public List<People> getPlayersTeamYear(String name, int anno){
+		String sql = "SELECT people.* "
+				+ "FROM people, appearances, teams "
+				+ "WHERE people.playerID=appearances.playerID "
+				+ "AND appearances.teamID=teams.ID "
+				+ "AND teams.year=? "
+				+ "AND teams.name=?";
+		List<People> result = new ArrayList<People>();
+
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, anno);
+			st.setString(2, name);
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				result.add(new People(rs.getString("playerID"), rs.getString("birthCountry"), rs.getString("birthCity"),
+						rs.getString("deathCountry"), rs.getString("deathCity"), rs.getString("nameFirst"),
+						rs.getString("nameLast"), rs.getInt("weight"), rs.getInt("height"), rs.getString("bats"),
+						rs.getString("throws"), getBirthDate(rs), getDebutDate(rs), getFinalGameDate(rs),
+						getDeathDate(rs)));
+			}
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+	
+	
+	
+	public List<Integer> readAllYears(Team team) {
+		String sql = "SELECT DISTINCT year "
+				+ "FROM teams "
+				+ "WHERE =?";
+		List<Integer> result = new ArrayList<Integer>();
+
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, team.getName());
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				result.add(rs.getInt("year"));
+			}
+			
+            st.close();
 			conn.close();
 			return result;
 
